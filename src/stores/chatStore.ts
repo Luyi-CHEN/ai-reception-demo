@@ -59,7 +59,23 @@ export const useChatStore = defineStore('chat', () => {
   })
 
   const sortedConversations = computed(() => {
-    return [...conversations.value].sort((a, b) => b.lastMessageTime - a.lastMessageTime)
+    const statusPriority: Record<string, number> = {
+      'pending_staff': 0,   // 待人工处理 - 最高优先级
+      'ai_serving': 1,      // AI接待中
+      'staff_serving': 2,   // 人工接待中
+      'closed': 3,          // 已完结 - 最低优先级
+    }
+
+    return [...conversations.value].sort((a, b) => {
+      // 先按状态优先级排序
+      const priorityA = statusPriority[a.status] ?? 99
+      const priorityB = statusPriority[b.status] ?? 99
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB
+      }
+      // 同一状态下，按lastMessageTime升序（越早的排越前面，等待越久越靠前）
+      return a.lastMessageTime - b.lastMessageTime
+    })
   })
 
   function getConversationById(id: string): Conversation | undefined {
