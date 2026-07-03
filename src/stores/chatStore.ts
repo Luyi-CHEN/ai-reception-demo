@@ -21,9 +21,9 @@ function nextMsgId() {
 const INTENT_RULES: { pattern: RegExp; intent: string; action: 'transfer' | 'knowledge' }[] = [
   { pattern: /退货|退款|坏了|碎了|质量|维修|售后/, intent: '售后与保修', action: 'transfer' },
   { pattern: /人工|客服|投诉|店长/, intent: '明确要求转人工', action: 'transfer' },
-  { pattern: /蓝牙|连接|安装|系统|重装|卡|卡顿|慢/, intent: '使用与安装', action: 'knowledge' },
+  { pattern: /蓝牙|连接|安装|系统|重装|卡|卡顿|慢|怎么用|怎么装|怎么连|怎么设置|wifi|无线|网络/i, intent: '使用与安装', action: 'knowledge' },
   {
-    pattern: /配置|能玩|性能|内存|处理器|推荐|哪款|多大|屏幕|电池/,
+    pattern: /配置|能玩|玩游戏|打游戏|性能|内存|处理器|推荐|哪款|多大|屏幕|电池|能够玩|够玩|够不够|适合|合适|续航|分辨率|像素|摄像头|显卡|存储|硬盘|预算|价格多少|多少钱/,
     intent: '产品咨询',
     action: 'knowledge',
   },
@@ -49,6 +49,9 @@ export const useChatStore = defineStore('chat', () => {
 
   /** 未识别次数跟踪 */
   let unrecognizedCount = 0
+
+  /** 产品咨询知识库未匹配次数跟踪 */
+  let productNoMatchCount = 0
 
   // ==================== Getters ====================
   const totalUnreadCount = computed(() => {
@@ -94,16 +97,21 @@ export const useChatStore = defineStore('chat', () => {
       lastMessageTime: now,
     }
     unrecognizedCount = 0
+    productNoMatchCount = 0
   }
 
   // ==================== 知识库匹配 ====================
 
   /** 关键词同义词扩展映射 */
   const KEYWORD_SYNONYMS: Record<string, string[]> = {
-    '游戏': ['能玩', '帧率', '3A', '大作'],
-    '屏幕': ['分辨率', '色域', '刷新率', '显示'],
+    '游戏': ['能玩', '帧率', '3A', '大作', '玩游戏', '打游戏', '显卡', 'RTX', '独显', '独立显卡'],
+    '玩游戏': ['游戏', '能玩', '帧率', '3A', '大作', '显卡', 'RTX', '独显', '独立显卡'],
+    '显卡': ['RTX', '独显', '独立显卡', '图形卡', '游戏'],
+    '屏幕': ['分辨率', '色域', '刷新率', '显示', '像素'],
     '电池': ['续航', '充电', '电量'],
     '内存': ['RAM', '存储', 'DDR'],
+    '存储': ['硬盘', 'SSD', '容量'],
+    '硬盘': ['SSD', '存储', '容量'],
     '蓝牙': ['无线', '耳机', '配对'],
     '卡': ['卡顿', '慢', '流畅', '性能'],
     '退货': ['退款', '退换', '换货'],
@@ -303,6 +311,7 @@ export const useChatStore = defineStore('chat', () => {
           const result = searchKnowledge(userMessage, matchedIntent)
 
           if (result) {
+            productNoMatchCount = 0
             const aiMsg: Message = {
               id: nextMsgId(),
               sender: 'ai',
@@ -320,63 +329,39 @@ export const useChatStore = defineStore('chat', () => {
             resolve()
             return
           } else {
-            handleTransfer('AI无法匹配知识库，问题超出知识范围', matchedIntent)
-            resolve()
-            return
-          }
-        }
+            productNoMatchCount++
 
-        // ==================== 未识别意图 - 渐进式降级 ====================
-        unrecognizedCount++
+            if (productNoMatchCount === 1) {
+              // 第一次未匹配：基于通用产品信息给尝试性回复
+              const tryReply =
+                '您好，您咨询的产品问题比较具体，我暂时没有找到完全匹配的信息。建议您提供具体型号或需求，方便我进一步为您查找。'
+              const aiMsg: Message = {
+                id: nextMsgId(),
+                sender: 'ai',
+                content: tryReply,
+                timestamp: now,
+                intentTag: matchedIntent,
+              }
+              userConversation.value.messages.push(aiMsg)
+              userConversation.value.lastMessage = tryReply
+              userConversation.value.lastMessageTime = now
 
-        if (unrecognizedCount <= 1) {
-          // 第1次未识别：尝试全量知识库兜底搜索
-          const fallbackResult = searchKnowledge(userMessage, '通用')
-          if (fallbackResult) {
-            const aiMsg: Message = {
-              id: nextMsgId(),
-              sender: 'ai',
-              content: fallbackResult.content,
-              timestamp: now,
-              intentTag: '未识别',
-              knowledgeSources: fallbackResult.sources,
+              updateIntentTags(matchedIntent)
+              syncToConversations(aiMsg)
+              resolve()
+              return
             }
-            userConversation.value.messages.push(aiMsg)
-            userConversation.value.lastMessage = fallbackResult.content
-            userConversation.value.lastMessageTime = now
-            updateIntentTags('未识别')
-            syncToConversations(aiMsg)
+
+            // 第二次及以上未匹配：直接转人工
+            handleTransfer('触发原因：知识库未匹配到相关内容', matchedIntent)
             resolve()
             return
           }
         }
 
-        if (unrecognizedCount <= 2) {
-          // 第2次未识别：给引导性提示，列出能帮的范围
-          const guideContent =
-            '抱歉，我暂时无法准确理解您的问题。我可以帮您解答以下方面的问题：\n' +
-            '1. 产品配置与参数咨询（如处理器、内存、屏幕等）\n' +
-            '2. 使用与安装问题（如蓝牙连接、系统重装、卡顿优化等）\n' +
-            '3. 售后与保修服务\n' +
-            '请您换个方式描述一下问题，或者直接告诉我您的需求~'
-          const aiMsg: Message = {
-            id: nextMsgId(),
-            sender: 'ai',
-            content: guideContent,
-            timestamp: now,
-            intentTag: '未识别',
-          }
-          userConversation.value.messages.push(aiMsg)
-          userConversation.value.lastMessage = guideContent
-          userConversation.value.lastMessageTime = now
-          updateIntentTags('未识别')
-          syncToConversations(aiMsg)
-          resolve()
-          return
-        }
-
-        // 第3次及以上未识别：转人工
-        handleTransfer('多次未识别用户意图，转人工处理', '未识别')
+        // ==================== 未识别意图 - 直接转人工 ====================
+        unrecognizedCount++
+        handleTransfer('触发原因：未识别到用户意图', '未识别')
         resolve()
       }, delay)
     })
@@ -547,6 +532,7 @@ export const useChatStore = defineStore('chat', () => {
       lastMessageTime: now,
     }
     unrecognizedCount = 0
+    productNoMatchCount = 0
   }
 
   // ==================== 暴露接口 ====================

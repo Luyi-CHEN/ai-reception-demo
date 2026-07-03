@@ -8,12 +8,12 @@ export const productKnowledge: KnowledgeItem[] = [
   {
     title: '联想小新Pro16配置参数',
     content:
-      '联想小新Pro16 2024款搭载AMD锐龙7 7840H处理器，16英寸2.5K 120Hz IPS屏幕，100% sRGB色域，16GB DDR5内存，1TB SSD存储，可选RTX 4050独立显卡，76Wh电池，重约1.93kg。',
+      '联想小新Pro16 2024款搭载AMD锐龙7 7840H处理器，16英寸2.5K 120Hz IPS屏幕，100% sRGB色域，16GB DDR5内存，1TB SSD存储，可选RTX 4050独立显卡，76Wh电池，重约1.93kg。RTX 4050版本可以流畅运行主流游戏和3A大作。',
   },
   {
     title: '联想拯救者Y7000P配置参数',
     content:
-      '联想拯救者Y7000P 2024款搭载Intel酷睿i7-14700HX处理器，16英寸2.5K 165Hz屏幕，16GB DDR5内存，1TB SSD存储，NVIDIA RTX 4060独立显卡140W满功耗，80Wh电池，支持独显直连，适合重度游戏和创作。',
+      '联想拯救者Y7000P 2024款搭载Intel酷睿i7-14700HX处理器，16英寸2.5K 165Hz屏幕，16GB DDR5内存，1TB SSD存储，NVIDIA RTX 4060独立显卡140W满功耗，80Wh电池，支持独显直连，适合重度游戏和创作，能够高画质流畅运行主流3A游戏。'
   },
   {
     title: '联想小新Air14配置参数',
