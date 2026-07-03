@@ -61,8 +61,8 @@ export const useChatStore = defineStore('chat', () => {
   const sortedConversations = computed(() => {
     const statusPriority: Record<string, number> = {
       'pending_staff': 0,   // 待人工处理 - 最高优先级
-      'ai_serving': 1,      // AI接待中
-      'staff_serving': 2,   // 人工接待中
+      'staff_serving': 1,   // 人工处理中
+      'ai_serving': 2,      // AI接待中
       'closed': 3,          // 已完结 - 最低优先级
     }
 
