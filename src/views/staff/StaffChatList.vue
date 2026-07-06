@@ -2,10 +2,11 @@
   <div class="staff-chat-list-page">
     <!-- 顶部导航栏 -->
     <van-nav-bar
-      title="AI客服-对话管理"
+      title="AI接待"
+      left-arrow
+      @click-left="router.back()"
       fixed
       placeholder
-      :border="true"
     />
 
     <!-- 对话列表 -->
@@ -66,9 +67,6 @@
       description="暂无对话"
       image="search"
     />
-
-    <!-- 悬浮按钮（装饰性） -->
-    <StaffFloatingButton :count="totalUnread" />
   </div>
 </template>
 
@@ -79,11 +77,10 @@ import type { TagType } from 'vant'
 import type { Conversation } from '@/types/conversation'
 import { useChatStore } from '@/stores/chatStore'
 import { formatTime } from '@/utils/time'
-import StaffFloatingButton from './StaffFloatingButton.vue'
 
 const router = useRouter()
 const chatStore = useChatStore()
-const { sortedConversations: conversations, totalUnreadCount: totalUnread } = storeToRefs(chatStore)
+const { sortedConversations: conversations } = storeToRefs(chatStore)
 
 // 跳转详情
 function goDetail(id: string) {
@@ -120,9 +117,9 @@ function getStatusText(status: Conversation['status']): string {
   padding-bottom: env(safe-area-inset-bottom, 16px);
 }
 
-/* NavBar 样式覆盖：高度 45px，白色背景 */
+/* NavBar 样式覆盖：高度 44px，白色背景 */
 :deep(.van-nav-bar) {
-  height: 45px;
+  height: 44px;
   background: #fff;
 }
 
