@@ -84,6 +84,15 @@
     <!-- 功能网格 -->
     <div class="feature-grid-card">
       <div class="feature-grid">
+        <!-- AI接待入口 -->
+        <div class="feature-item feature-item-ai" @click="goConversations">
+          <van-badge :content="totalUnreadCount > 99 ? '99+' : totalUnreadCount" :show-zero="false">
+            <div class="feature-icon feature-icon-ai">
+              <van-icon name="chat-o" />
+            </div>
+          </van-badge>
+          <span class="feature-name">AI接待</span>
+        </div>
         <div v-for="item in featureList" :key="item.name" class="feature-item">
           <div class="feature-icon" :style="{ background: item.bg, color: item.color }">
             <van-icon :name="item.icon" />
@@ -149,19 +158,6 @@
       <van-tabbar-item icon="chat-o">AI助手</van-tabbar-item>
     </van-tabbar>
 
-    <!-- 悬浮消息按钮 -->
-    <StaffFloatingButton
-      class="home-floating-button"
-      :count="totalUnreadCount"
-      @click="showPopup = true"
-    />
-
-    <!-- 对话弹窗 -->
-    <StaffChatPopup
-      v-model:visible="showPopup"
-      :conversations="sortedConversations"
-      @select="onSelectChat"
-    />
   </div>
 </template>
 
@@ -170,14 +166,11 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useChatStore } from '@/stores/chatStore'
-import StaffFloatingButton from './StaffFloatingButton.vue'
-import StaffChatPopup from './StaffChatPopup.vue'
 
 const router = useRouter()
 const chatStore = useChatStore()
-const { sortedConversations, totalUnreadCount } = storeToRefs(chatStore)
+const { totalUnreadCount } = storeToRefs(chatStore)
 
-const showPopup = ref(false)
 const activeTabbar = ref(0)
 const activeTab = ref('日')
 
@@ -204,11 +197,6 @@ const featureList = [
 
 function goConversations() {
   router.push('/staff/conversations')
-}
-
-function onSelectChat(id: string) {
-  showPopup.value = false
-  router.push('/staff/detail/' + id)
 }
 </script>
 
@@ -612,12 +600,14 @@ function onSelectChat(id: string) {
   color: #1B1B1B;
 }
 
-/* 悬浮按钮位置调整 */
-.home-floating-button {
-  position: fixed;
-  right: 16px;
-  bottom: calc(66px + env(safe-area-inset-bottom, 0px));
-  z-index: 100;
+/* AI接待图标 */
+.feature-item-ai {
+  cursor: pointer;
+}
+
+.feature-icon-ai {
+  background: #2563EB;
+  color: #FFFFFF;
 }
 
 /* TabBar 高度适配 */
