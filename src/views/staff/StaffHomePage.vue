@@ -86,11 +86,9 @@
       <div class="feature-grid">
         <!-- AI接待入口 -->
         <div class="feature-item feature-item-ai" @click="goConversations">
-          <van-badge :content="totalUnreadCount > 99 ? '99+' : totalUnreadCount" :show-zero="false">
-            <div class="feature-icon feature-icon-ai">
-              <van-icon name="chat-o" />
-            </div>
-          </van-badge>
+          <div class="feature-icon feature-icon-ai">
+            <van-icon name="chat-o" />
+          </div>
           <span class="feature-name">AI接待</span>
         </div>
         <div v-for="item in featureList" :key="item.name" class="feature-item">
