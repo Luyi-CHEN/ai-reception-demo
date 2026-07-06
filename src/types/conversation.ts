@@ -19,12 +19,15 @@ export interface Message {
   transferReason?: string
 }
 
+export type IMPlatform = 'meituan' | 'jd' | 'wecom'
+
 export interface Conversation {
   id: string
   userId: string
   userName: string
   userAvatar: string
   storeName: string
+  platform: IMPlatform
   status: 'ai_serving' | 'pending_staff' | 'staff_serving' | 'closed'
   messages: Message[]
   intentTags: IntentTag[]

@@ -19,6 +19,7 @@ export const mockConversations: Conversation[] = [
     userName: '张伟',
     userAvatar: 'https://fastly.jsdelivr.net/npm/@vant/assets/cat.jpeg',
     storeName: STORE_NAME,
+    platform: 'meituan',
     status: 'ai_serving',
     messages: [
       {
@@ -72,6 +73,7 @@ export const mockConversations: Conversation[] = [
     userName: '李娜',
     userAvatar: 'https://fastly.jsdelivr.net/npm/@vant/assets/leaf.jpeg',
     storeName: STORE_NAME,
+    platform: 'jd',
     status: 'ai_serving',
     messages: [
       {
@@ -114,6 +116,7 @@ export const mockConversations: Conversation[] = [
     userName: '王芳',
     userAvatar: 'https://fastly.jsdelivr.net/npm/@vant/assets/sand.jpeg',
     storeName: STORE_NAME,
+    platform: 'wecom',
     status: 'pending_staff',
     messages: [
       {
@@ -154,6 +157,7 @@ export const mockConversations: Conversation[] = [
     userName: '刘洋',
     userAvatar: 'https://fastly.jsdelivr.net/npm/@vant/assets/tree.jpeg',
     storeName: STORE_NAME,
+    platform: 'meituan',
     status: 'staff_serving',
     messages: [
       {
@@ -202,6 +206,7 @@ export const mockConversations: Conversation[] = [
     userName: '陈静',
     userAvatar: 'https://fastly.jsdelivr.net/npm/@vant/assets/apple.jpeg',
     storeName: STORE_NAME,
+    platform: 'jd',
     status: 'closed',
     messages: [
       {

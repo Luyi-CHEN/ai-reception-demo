@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import type { Conversation, Message, KnowledgeSource } from '@/types/conversation'
+import type { Conversation, Message, KnowledgeSource, IMPlatform } from '@/types/conversation'
 import { mockConversations } from '@/mock/conversations'
 import { knowledgeBase, productKnowledge, usageKnowledge } from '@/mock/knowledge'
 
@@ -10,6 +10,12 @@ const TRANSFER_MESSAGE =
 
 /** 门店名称 */
 const STORE_NAME = '联想体验店'
+
+/** 随机分配IM平台 */
+const PLATFORMS: IMPlatform[] = ['meituan', 'jd', 'wecom']
+function randomPlatform(): IMPlatform {
+  return PLATFORMS[Math.floor(Math.random() * PLATFORMS.length)]
+}
 
 /** 消息ID计数器 */
 let msgIdCounter = 0
@@ -38,6 +44,7 @@ export const useChatStore = defineStore('chat', () => {
     userName: '当前用户',
     userAvatar: '',
     storeName: STORE_NAME,
+    platform: 'meituan',
     status: 'ai_serving',
     messages: [],
     intentTags: [],
@@ -105,6 +112,7 @@ export const useChatStore = defineStore('chat', () => {
       userName: '当前用户',
       userAvatar: '',
       storeName: STORE_NAME,
+      platform: 'meituan',
       status: 'ai_serving',
       messages: [welcomeMsg],
       intentTags: [],
@@ -282,6 +290,7 @@ export const useChatStore = defineStore('chat', () => {
           userConversation.value.userAvatar ||
           'https://fastly.jsdelivr.net/npm/@vant/assets/cat.jpeg',
         storeName: STORE_NAME,
+        platform: randomPlatform(),
         status: 'pending_staff',
         messages: [...userConversation.value.messages],
         intentTags: [...userConversation.value.intentTags],
@@ -418,6 +427,7 @@ export const useChatStore = defineStore('chat', () => {
           userConversation.value.userAvatar ||
           'https://fastly.jsdelivr.net/npm/@vant/assets/cat.jpeg',
         storeName: STORE_NAME,
+        platform: randomPlatform(),
         status: 'ai_serving',
         messages: [...userConversation.value.messages],
         intentTags: [...userConversation.value.intentTags],
@@ -468,6 +478,7 @@ export const useChatStore = defineStore('chat', () => {
         userName: uc.userName,
         userAvatar: uc.userAvatar || 'https://fastly.jsdelivr.net/npm/@vant/assets/cat.jpeg',
         storeName: uc.storeName,
+        platform: randomPlatform(),
         status: 'pending_staff',
         messages: [...uc.messages],
         intentTags: [...uc.intentTags],
@@ -540,6 +551,7 @@ export const useChatStore = defineStore('chat', () => {
       userName: '当前用户',
       userAvatar: '',
       storeName: STORE_NAME,
+      platform: 'meituan',
       status: 'ai_serving',
       messages: [welcomeMsg],
       intentTags: [],

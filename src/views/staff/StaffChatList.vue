@@ -36,7 +36,12 @@
         <!-- 中间内容 -->
         <div class="card-middle">
           <div class="card-row-top">
-            <span class="user-name">{{ conv.userName }}</span>
+            <div class="name-platform">
+              <span class="user-name">{{ conv.userName }}</span>
+              <van-tag plain :color="getPlatformColor(conv.platform)">
+                {{ getPlatformLabel(conv.platform) }}
+              </van-tag>
+            </div>
             <span class="msg-time">{{ formatTime(conv.lastMessageTime) }}</span>
           </div>
           <div class="card-row-bottom">
@@ -107,6 +112,26 @@ function getStatusText(status: Conversation['status']): string {
     closed: '已完结',
   }
   return map[status]
+}
+
+// IM平台 → 中文标签
+function getPlatformLabel(platform: string) {
+  const map: Record<string, string> = {
+    meituan: '美团',
+    jd: '京东',
+    wecom: '企微',
+  }
+  return map[platform] || platform
+}
+
+// IM平台 → 标签颜色
+function getPlatformColor(platform: string) {
+  const map: Record<string, string> = {
+    meituan: '#FF9500',
+    jd: '#FF4D4F',
+    wecom: '#52C41A',
+  }
+  return map[platform] || '#999'
 }
 </script>
 
@@ -188,6 +213,14 @@ function getStatusText(status: Conversation['status']): string {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.name-platform {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex-shrink: 1;
 }
 
 .msg-time {
