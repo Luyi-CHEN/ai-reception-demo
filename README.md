@@ -221,3 +221,141 @@ npm run dev
 This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
 
 Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+
+---
+
+## 后续开发指南
+
+本项目当前为纯前端Mock驱动的POC Demo，无真实后端。以下说明各角色工程师如何在此基础上继续开发。
+
+### 环境准备（通用）
+
+```bash
+# 克隆仓库
+git clone https://github.com/Luyi-CHEN/ai-reception-demo.git
+cd ai-reception-demo
+
+# 安装依赖
+npm install
+
+# 启动本地开发服务器（热更新）
+npm run dev
+
+# 构建生产版本
+npm run build
+```
+
+### 前端工程师
+
+**扩展点：**
+
+1. **新增页面/组件**
+   - 在 `src/views/` 下按角色（user/staff）创建 `.vue` 文件
+   - 在 `src/router/index.ts` 中注册路由（使用懒加载）
+   - 共享组件放入 `src/components/chat/`
+   - 使用 Vant 4 组件库，无需手动 import（自动按需导入）
+
+2. **样式规范**
+   - 使用 `<style scoped>` 隔离组件样式
+   - 颜色使用 CSS 变量（定义在 `src/style.css` 的 `:root`）
+   - 主色 `#2563EB`，背景 `#EDF4FF`，参考设计规范文档
+
+3. **状态管理**
+   - 核心逻辑集中在 `src/stores/chatStore.ts`（Pinia Composition API 风格）
+   - 新增业务状态建议创建独立 store 文件
+
+4. **对接真实API**
+   - 在 `src/stores/chatStore.ts` 中找到 `getAIReply()` 方法
+   - 将内部的关键词匹配逻辑替换为 HTTP 请求（如 `fetch` 或 `axios`）
+   - 建议创建 `src/api/` 目录统一管理接口调用
+
+### 后端工程师
+
+**当前Mock逻辑 → 真实API的替换路径：**
+
+1. **对话消息API**
+   - 当前：`chatStore.ts` 中 `sendUserMessage()` 直接调用本地 `getAIReply()`
+   - 替换为：`POST /api/chat/send` → 后端处理意图识别+知识库检索 → 返回AI回复
+   - 接口建议格式：
+     ```json
+     // Request
+     { "conversationId": "string", "message": "string", "platform": "meituan|jd|wecom" }
+     // Response
+     { "reply": "string", "intent": "string", "sources": [...], "shouldTransfer": boolean }
+     ```
+
+2. **对话列表API**
+   - 当前：`chatStore.ts` 中 `conversations` 为本地 reactive 数组
+   - 替换为：`GET /api/conversations` → 返回对话列表（含状态、平台、最后消息等）
+
+3. **知识库检索API**
+   - 当前：`chatStore.ts` 中 `searchKnowledge()` 为本地关键词匹配
+   - 替换为：`POST /api/knowledge/search` → 后端向量检索或ES全文搜索
+
+4. **转人工逻辑**
+   - 当前：前端根据规则判断是否转人工
+   - 替换为：后端统一决策，返回 `shouldTransfer: true` 时前端切换状态
+
+5. **WebSocket（可选）**
+   - 店员端实时接收新消息/状态变更，建议用 WebSocket 替代轮询
+
+### 算法工程师
+
+**当前意图识别逻辑 → 算法服务的替换路径：**
+
+1. **意图识别**
+   - 当前实现：`chatStore.ts` 中 `getAIReply()` 使用正则关键词匹配
+   - 支持的意图：产品咨询、使用与安装、售后与保修、明确转人工、未识别
+   - 替换为：NLU模型服务（如 BERT/GPT 意图分类）
+   - 接口建议：`POST /api/nlu/classify` → `{ "intent": "product_consult", "confidence": 0.95 }`
+
+2. **知识库检索**
+   - 当前实现：`mock/knowledge.ts` 中硬编码9条产品/FAQ数据 + 关键词同义词扩展匹配
+   - 替换为：RAG（检索增强生成）
+     - 向量数据库存储产品文档/FAQ
+     - Embedding模型将用户问题向量化
+     - Top-K 检索 + LLM 生成回复
+
+3. **转人工决策**
+   - 当前规则：售后→直接转；未识别→直接转；知识库无匹配→转；同一问题第2次→转
+   - 优化方向：基于对话上下文的多轮判断、用户情绪识别、置信度阈值动态调整
+
+4. **回复生成**
+   - 当前：直接返回知识库原文
+   - 优化为：LLM 基于检索结果生成自然语言回复（RAG模式）
+
+### 协作开发流程
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  前端工程师   │     │  后端工程师   │     │  算法工程师   │
+│             │     │             │     │             │
+│ Vue组件开发  │◄───►│ API接口开发  │◄───►│ NLU/RAG服务  │
+│ 页面交互优化  │     │ 数据库设计   │     │ 意图识别模型  │
+│ UI/UX迭代   │     │ WebSocket   │     │ 知识库检索   │
+└─────────────┘     └─────────────┘     └─────────────┘
+        │                   │                   │
+        └───────────────────┴───────────────────┘
+                            │
+                     API Contract
+                    (统一接口约定)
+```
+
+### 关键文件索引
+
+| 文件 | 用途 | 替换/扩展说明 |
+|------|------|-------------|
+| `src/stores/chatStore.ts` | 核心业务逻辑 | AI回复、转人工判断替换为API调用 |
+| `src/mock/knowledge.ts` | 知识库数据 | 替换为后端知识库服务 |
+| `src/mock/conversations.ts` | 对话Mock数据 | 替换为数据库持久化 |
+| `src/types/conversation.ts` | 数据模型定义 | 前后端共享的接口契约 |
+| `src/views/user/UserChatPage.vue` | 用户端对话页 | 前端UI迭代 |
+| `src/views/staff/StaffChatDetail.vue` | 店员端详情页 | 前端UI迭代 |
+| `vite.config.ts` | 构建配置 | 添加API代理（proxy）配置 |
+
+### Git 工作流建议
+
+1. 从 `main` 分支创建特性分支：`git checkout -b feature/xxx`
+2. 开发完成后提交 PR，触发 CI 构建验证
+3. Code Review 通过后合并到 `main`，自动部署到 GitHub Pages
+
